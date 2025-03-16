@@ -5,9 +5,15 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
-import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.LiftArmCommand;
+import frc.robot.commands.OpenClawCommand;
+import frc.robot.commands.TankDriveCommand;
+import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Claw;
+import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.RomiDrivetrain;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -19,11 +25,24 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final RomiDrivetrain m_romiDrivetrain = new RomiDrivetrain();
 
-  private final ExampleCommand m_autoCommand = new ExampleCommand(m_romiDrivetrain);
+  // make sure all reference is to the same drive train
+  // don't use new bc u only have one drive train
+  private CommandXboxController m_gamepad = new CommandXboxController(0);
+  private DriveTrain m_drivetrain = new DriveTrain (0,1);
+  private TankDriveCommand m_tankDriveCmd = new TankDriveCommand(m_drivetrain, m_gamepad);
+  
+  // every command needs to know its subsystem
+  private Arm m_arm = new Arm(2);
+  private Claw m_claw = new Claw (4);
+  private LiftArmCommand m_liftArmCommand = new LiftArmCommand(m_arm, 30);
+  private LiftArmCommand m_resetArmCommand = new LiftArmCommand(m_arm, 0);
+
+  private OpenClawCommand m_openClawCommand = new OpenClawCommand(m_claw, 10);
+  private OpenClawCommand m_resetClawCommand = new OpenClawCommand(m_claw, 0);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // Configure the button bindings
+    
     configureButtonBindings();
   }
 
@@ -33,7 +52,15 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {}
+  private void configureButtonBindings() {
+    m_drivetrain.setDefaultCommand(m_tankDriveCmd);
+    m_gamepad.x().whileTrue(m_liftArmCommand);
+    m_gamepad.b().onTrue(m_resetArmCommand);
+
+    m_gamepad.leftTrigger().whileTrue(m_openClawCommand);
+    m_gamepad.rightTrigger().whileTrue(m_resetClawCommand);
+
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
@@ -42,6 +69,6 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-    return m_autoCommand;
+    return null;
   }
 }
